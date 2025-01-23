@@ -12,7 +12,7 @@ client = OpenAI()
 st.title("UCSD Mental Health Bot")
 
 if "openai_model" not in st.session_state:
-    st.session_state["openai_model"] = "gpt-4o"
+    st.session_state["openai_model"] = "gpt-4o-mini"
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -26,7 +26,9 @@ if prompt := st.chat_input("What is up?"):
     if "messages" not in st.session_state:
         st.session_state.messages = [
             {"role": "system", "content": "You are a therapist chatbot focused on UCSD students. \
-             Approach responses in a carefully, being kind and understanding."}
+             Approach responses in a carefully, being kind and understanding. If there is extreme emotion (ex. suicidal thoughts, \
+                extreme violence), say that you are unable to help and direct to 988. Narrow your advice to be relevant to college\
+             "}
         ]
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
