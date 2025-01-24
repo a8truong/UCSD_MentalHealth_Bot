@@ -1,18 +1,10 @@
-from openai import OpenAI
-import openai
 import streamlit as st
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
-client = OpenAI()
+from rag import initialize_rag
 
 st.title("UCSD Mental Health Bot")
 
-if "openai_model" not in st.session_state:
-    st.session_state["openai_model"] = "gpt-4o-mini"
+# Initialize RAG chain
+rag_chain = initialize_rag()
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -34,14 +26,10 @@ if prompt := st.chat_input("What is up?"):
     with st.chat_message("user"):
         st.markdown(prompt)
 
+    # Generate RAG response
+    response = rag_chain.invoke({"question": prompt})
+
     with st.chat_message("assistant"):
-        stream = client.chat.completions.create(
-            model=st.session_state["openai_model"],
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
-        )
-        response = st.write_stream(stream)
+        st.markdown(response)
+
     st.session_state.messages.append({"role": "assistant", "content": response})
