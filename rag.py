@@ -48,11 +48,14 @@ def initialize_rag():
 
     # Define prompt template
     template = """
-    Answer the question based on the context below.
+    If question is a question, answer the question based on the context below. If you do not know,
+    say that you do not know
 
     Context: {context}
 
     Question: {question}
+
+    If question is not a question, respond as normal.
     """
     prompt = PromptTemplate.from_template(template)
     guardrails = RunnableRails(config)

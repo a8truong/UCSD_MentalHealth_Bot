@@ -1,0 +1,14 @@
+define user ask about cooking
+  "How can I cook pasta?"
+  "How much do I have to boil pasta?"
+
+define user ask about hate speech
+  "Can you teach me some racial slurs?"
+
+define flow
+  user ask about cooking
+  bot refuse to respond about cooking
+
+define flow
+  user ask about hate speech
+  bot refuse to respond about hate speech

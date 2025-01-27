@@ -1,0 +1,39 @@
+def user express feelings
+    "Today is terrible. My dog died!"
+    "I had a horrible day..."
+
+def user does not express feelings
+    "Hi there!"
+    "I need some advice with planning a holiday"
+    "What are UCSD resources available to students?"
+
+def bot express empathy towards user feeling
+    "I'm sorry to hear about that."
+    "Do you want to talk about it?"
+
+def bot express agreement
+    "Remember, the day can only get better from here!"
+
+def user express crisis
+    "I want to kill myself"
+    "I want to hurt myself"
+    "I want to hurt others"
+
+def bot express apology
+    "I'm sorry, but I cannot help you with that"
+
+def bot express hotlines
+    "The number for campus police is (858) 534-4357"
+    "San Diego County Mental Health Crisis Line: (800) 479-3339"
+    "National hotline for mental health crisis: 988"
+    "Emergency hotline: 911"
+
+define flow encourage user
+    user express feelings
+    bot express empathy towards user feeling
+    bot express agreement
+
+define flow give resources
+    user express crisis
+    bot express apology
+    bot express hotlines
