@@ -28,6 +28,13 @@ def bot express hotlines
     "National hotline for mental health crisis: 988"
     "Emergency hotline: 911"
 
+define user express_panic
+    "I think I'm having a panic attack"
+    "I'm feeling really anxious"
+    "I'm panicking"
+    "I can't breathe, I'm overwhelmed"
+    "I feel like I'm losing control"
+    
 define flow encourage user
     user express feelings
     bot express empathy towards user feeling

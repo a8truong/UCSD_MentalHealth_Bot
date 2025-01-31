@@ -17,8 +17,6 @@ import requests
 from bs4 import BeautifulSoup
 from langchain.schema import Document
 
-config = RailsConfig.from_path("./config")
-
 # Load environment variables
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -80,6 +78,7 @@ def scrape_multiple_websites(urls):
     return [result for result in results if result is not None]
 
 import faiss
+import numpy as np
 
 # Initialize OpenAI model and embeddings
 def initialize_rag():
@@ -103,9 +102,26 @@ def initialize_rag():
     # Combine PDFs and Web Data
     all_documents = pages + web_documents
 
-    # Create vector store
-    vectorstore = DocArrayInMemorySearch.from_documents(all_documents, embedding=embeddings)
-    retriever = vectorstore.as_retriever()
+    # Convert documents to embeddings using embed_documents method
+    document_texts = [doc.page_content for doc in all_documents]
+    embeddings_list = embeddings.embed_documents(document_texts)
+
+    # Convert embeddings to a numpy array (for FAISS)
+    embeddings_array = np.array(embeddings_list).astype('float32')
+
+    # Create FAISS index
+    d = embeddings_array.shape[1]  # dimension of the embeddings
+    index = faiss.IndexFlatL2(d)  # L2 distance index (you can choose another type of FAISS index)
+
+    # Add embeddings to the FAISS index
+    index.add(embeddings_array)
+
+    # Create retriever function
+    def retriever(query, k=5):
+        query_embedding = embeddings.embed_query(query)  # Get query embedding
+        query_embedding = np.array([query_embedding]).astype('float32')
+        distances, indices = index.search(query_embedding, k)  # Perform search
+        return [all_documents[i] for i in indices[0]]
 
     # Define prompt template
     template = """
@@ -119,13 +135,15 @@ def initialize_rag():
     If question is not a question, respond as normal.
     """
     prompt = PromptTemplate.from_template(template)
+    
+    config = RailsConfig.from_path("./config")
     guardrails = RunnableRails(config)
 
     # Define the RAG chain
     chain = (
         {
-            "context": itemgetter("question") | retriever,
-            "question": itemgetter("question"),
+            "context": lambda x: retriever(x["question"]),
+            "question": lambda x: x["question"],
         }
         | prompt
         | (guardrails | model)

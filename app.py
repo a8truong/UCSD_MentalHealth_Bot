@@ -1,12 +1,6 @@
 import streamlit as st
 from rag import initialize_rag
 
-from nemoguardrails import RailsConfig
-from nemoguardrails import LLMRails
-
-
-config = RailsConfig.from_path("./config")
-
 st.title("UCSD Mental Health Bot")
 
 # Initialize RAG chain
