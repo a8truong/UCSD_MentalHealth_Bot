@@ -127,7 +127,7 @@ def initialize_rag():
     template = """
     If question is a question, answer the question based on the context below. If you do not know,
     say that you do not know
-
+    
     Context: {context}
 
     Question: {question}

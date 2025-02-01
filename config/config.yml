@@ -13,4 +13,11 @@ rails:
   input:
     flows:
       - self check input
+  dialog:
+    user_messages:
+      embeddings_only: True
+      embeddings_only_similarity_threshold: 0.75
+    single_call:
+      enabled: False
+      fallback_to_multiple_calls: False
 
