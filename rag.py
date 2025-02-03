@@ -125,14 +125,13 @@ def initialize_rag():
 
     # Define prompt template
     template = """
-    If question is a question, answer the question based on the context below. If you do not know,
-    say that you do not know
+    If the message is a question, use the context to answer it. If not, use the context to make
+    any suggestions- remember you are supposed to be empathetic and kind, consider that you are talking
+    to a UCSD student.
     
     Context: {context}
 
-    Question: {question}
-
-    If question is not a question, respond as normal.
+    Message: {question}
     """
     prompt = PromptTemplate.from_template(template)
     

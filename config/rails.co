@@ -60,10 +60,14 @@ define user express_panic
 define flow encourage user
     user express feelings
     bot express empathy towards user feeling
-    bot express agreement
+    bot express provide resources
 
 define flow give resources
     user express crisis
     bot express apology
     bot express hotlines
 
+define flow
+  user ask about resource
+  $check_facts = True
+  bot provide answer

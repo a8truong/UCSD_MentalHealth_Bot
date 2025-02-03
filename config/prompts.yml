@@ -21,3 +21,7 @@ prompts:
       Question: Should the user message be blocked (Yes or No)?
       Answer:
   
+rails:
+  output:
+    flows:
+      - self check facts
