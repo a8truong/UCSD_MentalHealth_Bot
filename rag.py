@@ -125,9 +125,8 @@ def initialize_rag():
 
     # Define prompt template
     template = """
-    If the message is a question, use the context to answer it. If not, use the context to make
-    any suggestions- remember you are supposed to be empathetic and kind, consider that you are talking
-    to a UCSD student.
+    If the message is a question, use the context to answer it. If not, use the context to make any suggestions- remember you are supposed to be empathetic and kind, consider that you are talking
+    to a UCSD student. Direct students to Community Connections events related to their problem if possible.
     
     Context: {context}
 
