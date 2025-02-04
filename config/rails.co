@@ -1,54 +1,65 @@
 define user express suicide
-  "I want to kill myself"
-  "I'm thinking about suicide"
-  "I wanna die"
-  "I don't want to live anymore"
-  "I'm feeling hopeless"
+    "I want to kill myself"
+    "I want to hurt myself"
+    "I'm thinking about suicide"
+    "I wanna die"
+    "I don't want to live anymore"
+    "I'm feeling hopeless"
 
-define bot provide suicide prevention resources
-  "I am sorry to hear that you are feeling this way. It is important to reach out for help and talk to someone about how you are feeling. You can contact a mental health professional, a helpline, or a trusted individual for support. Your life is valuable, and there are people who care about you.
+define bot express suicide_prevention_resources
+    "I am sorry to hear that you are feeling this way. It is important to reach out for help and talk to someone about how you are feeling. You can contact a mental health professional, a helpline, or a trusted individual for support. Your life is valuable, and there are people who care about you.
+    
+    **San Diego County Mental Health Crisis Line:** (800) 479-3339  
 
-  **San Diego County Mental Health Crisis Line:** (800) 479-3339  
+    **Additional Resources:**
+    - UCSD CAPS Crisis Line (24/7): (858) 534-3755  
+    - National Suicide Prevention Lifeline: 988  
+    - Walk into any hospital emergency room  
+    - Call 911"
 
-  **Additional Resources:**  
-  - UCSD CAPS Crisis Line (24/7): (858) 534-3755  
-  - National Suicide Prevention Lifeline: 988  
-  - Walk into any hospital emergency room  
-  - Call 911"
+define flow detect_suicide
+    user express suicide
+    bot express suicide_prevention_resources
 
-define flow detect suicide
-  user express suicide
-  bot provide suicide prevention resources
+define user express hurting_others
+    "I want to hurt someone."
+    "I feel like attacking someone."
+    "I’m so angry, I might hurt them."
+    "They deserve to be hurt."
+    "I can’t control my violent thoughts."
+    "I want to make someone suffer."
 
-def user express feelings
+define bot express violence_prevention_resources
+    "I'm sorry to hear that you are feeling this way. It’s important to talk to someone and seek support. Violence is not the answer, and help is available.
+
+    If you are feeling overwhelmed, please reach out to a professional who can help you manage these emotions.
+
+    **Confidential Support & Crisis Intervention:**  
+    - **San Diego Access & Crisis Line (24/7):** (888) 724-7240  
+    - **National Alliance on Mental Illness (NAMI) Helpline:** 1-800-950-NAMI (6264)  
+    - **Emergency Support:** If you feel you might act on these thoughts, please call 911 or go to the nearest hospital.  
+
+  You are not alone—help is available."
+
+define flow detect_violence
+    user express hurting_others
+    bot express violence_prevention_resources
+
+define user express feelings
     "Today is terrible. My dog died!"
     "I had a horrible day..."
 
-def user does not express feelings
+define user does not express feelings
     "Hi there!"
     "I need some advice with planning a holiday"
     "What are UCSD resources available to students?"
 
-def bot express empathy towards user feeling
+define bot express empathy towards user feeling
     "I'm sorry to hear about that."
     "Do you want to talk about it?"
 
-def bot express agreement
+define bot express agreement
     "Remember, the day can only get better from here!"
-
-def user express crisis
-    "I want to kill myself"
-    "I want to hurt myself"
-    "I want to hurt others"
-
-def bot express apology
-    "I'm sorry, but I cannot help you with that"
-
-def bot express hotlines
-    "The number for campus police is (858) 534-4357"
-    "San Diego County Mental Health Crisis Line: (800) 479-3339"
-    "National hotline for mental health crisis: 988"
-    "Emergency hotline: 911"
 
 define user express_panic
     "I think I'm having a panic attack"
@@ -61,11 +72,6 @@ define flow encourage user
     user express feelings
     bot express empathy towards user feeling
     bot express provide resources
-
-define flow give resources
-    user express crisis
-    bot express apology
-    bot express hotlines
 
 define flow
   user ask about resource

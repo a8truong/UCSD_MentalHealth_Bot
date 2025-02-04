@@ -13,6 +13,9 @@ rails:
   input:
     flows:
       - self check input
+      - detect_suicide
+      - detect_violence
+    force_flow_response: True
   dialog:
     user_messages:
       embeddings_only: True
@@ -20,7 +23,7 @@ rails:
     single_call:
       enabled: False
       fallback_to_multiple_calls: False
-
+  
 prompts:
   - task: self_check_facts
     content: |-

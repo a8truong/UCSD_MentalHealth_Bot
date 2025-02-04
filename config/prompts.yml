@@ -15,6 +15,7 @@ prompts:
       - should not contain garbled language
     
       IMPORTANT: If the message indicates **suicidal intent, self-harm, or crisis**, do NOT block it.
+      Crisis messages MUST use predefined template responses.
 
       User message: "{{ user_input }}"
 
