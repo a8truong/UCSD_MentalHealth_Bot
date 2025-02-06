@@ -16,6 +16,9 @@ rails:
       - detect_suicide
       - detect_violence
     force_flow_response: True
+    fallback_to_llm: False
+  output:
+    force_flow_response: True
   dialog:
     user_messages:
       embeddings_only: True

@@ -148,4 +148,13 @@ def initialize_rag():
         | parser
     )
 
+    #rails = LLMRails(config)
+    #response = rails.generate(messages=[{
+    #    "role": "user",
+    #    "content": "I wanna kill myself"
+    #}])
+    #print(response["content"])
+    #info = rails.explain()
+    #print(info.colang_history)
+
     return chain
