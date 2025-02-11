@@ -1,10 +1,20 @@
 import streamlit as st
-from rag import initialize_rag
+from config.action import retrieve, rag
+from nemoguardrails import RailsConfig, LLMRails
+from dotenv import load_dotenv
+import os
+import asyncio
+
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+config = RailsConfig.from_path("./config")
+rails = LLMRails(config)
+rails.register_action(action=retrieve, name="retrieve")
+rails.register_action(action=rag, name="rag")
+
 
 st.title("UCSD Mental Health Bot")
-
-# Initialize RAG chain
-rag_chain = initialize_rag()
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -24,8 +34,14 @@ if prompt := st.chat_input("How can I help you?"):
     with st.chat_message("user"):
         st.write(prompt)
 
-    # Generate RAG response
-    response = rag_chain.invoke({"question": prompt})
+    async def chat():
+        """
+        Generate response asynchronously
+        """
+        response = await rails.generate_async(prompt=prompt)
+        return response
+
+    response = asyncio.run(chat())
 
     with st.chat_message("assistant"):
         st.write(response)

@@ -45,35 +45,48 @@ define flow detect_violence
     user express hurting_others
     bot express violence_prevention_resources
 
-define user express feelings
+define user express_feelings
     "Today is terrible. My dog died!"
     "I had a horrible day..."
+    "I'm feeling really down."
 
-define user does not express feelings
-    "Hi there!"
-    "I need some advice with planning a holiday"
-    "What are UCSD resources available to students?"
+define bot express_empathy
+    "I'm really sorry to hear that."
+    "That must be really tough."
+    "I can only imagine how you feel."
 
-define bot express empathy towards user feeling
-    "I'm sorry to hear about that."
+define bot ask_follow_up
     "Do you want to talk about it?"
+    "What happened?"
+    "What’s on your mind?"
 
-define bot express agreement
-    "Remember, the day can only get better from here!"
+define user share_details
+    "His name was Buddy. He was with me for 10 years."
+    "I lost my job today."
+    "I've been feeling overwhelmed lately."
 
-define user express_panic
-    "I think I'm having a panic attack"
-    "I'm feeling really anxious"
-    "I'm panicking"
-    "I can't breathe, I'm overwhelmed"
-    "I feel like I'm losing control"
+define user accept_or_decline_resources
+    "Yes, that would be helpful."
+    "No, I think I just need time."
+    "Maybe later."
+
+define bot offer_continued_support
+    "If you ever want to talk more, I'm here for you."
+    "Take care of yourself, and reach out if you need to."
+    "You’re not alone. I’m here to listen anytime."
+
+define bot provide_mental_health_resources
+    $contexts = execute retrieve(query=$last_user_message)
+    $answer = execute rag(query=$last_user_message, contexts=$contexts)
+    bot $answer
     
-define flow encourage user
-    user express feelings
-    bot express empathy towards user feeling
-    bot express provide resources
-
-define flow
-  user ask about resource
-  $check_facts = True
-  bot provide answer
+define flow provide_resources
+    user express_feelings
+    bot express_empathy
+    bot ask_follow_up
+    user share_details
+    $contexts = execute retrieve(query=$last_user_message)
+    $answer = execute rag(query=$last_user_message, contexts=$contexts)
+    bot $answer
+    user accept_or_decline_resources
+    bot offer_continued_support

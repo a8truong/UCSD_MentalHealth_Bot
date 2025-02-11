@@ -1,3 +1,6 @@
+from typing import Optional
+from nemoguardrails.actions import action
+
 import concurrent.futures
 import os
 import glob
@@ -6,7 +9,6 @@ from langchain_openai.chat_models import ChatOpenAI
 from langchain_openai.embeddings import OpenAIEmbeddings
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_community.vectorstores import DocArrayInMemorySearch
 from langchain.prompts import PromptTemplate
 from operator import itemgetter
 
@@ -16,6 +18,7 @@ from nemoguardrails.integrations.langchain.runnable_rails import RunnableRails
 import requests
 from bs4 import BeautifulSoup
 from langchain.schema import Document
+import openai
 
 # Load environment variables
 load_dotenv()
@@ -80,11 +83,9 @@ def scrape_multiple_websites(urls):
 import faiss
 import numpy as np
 
-# Initialize OpenAI model and embeddings
-def initialize_rag():
-    model = ChatOpenAI(openai_api_key=OPENAI_API_KEY, model=MODEL)
+@action(is_system_action=True)
+async def retrieve(query: str) -> list:
     embeddings = OpenAIEmbeddings()
-    parser = StrOutputParser()
 
     # Load and process documents
     pages = load_multiple_pdfs("data")
@@ -116,14 +117,16 @@ def initialize_rag():
     # Add embeddings to the FAISS index
     index.add(embeddings_array)
 
-    # Create retriever function
-    def retriever(query, k=5):
-        query_embedding = embeddings.embed_query(query)  # Get query embedding
-        query_embedding = np.array([query_embedding]).astype('float32')
-        distances, indices = index.search(query_embedding, k)  # Perform search
-        return [all_documents[i] for i in indices[0]]
+    k = 5
+    query_embedding = embeddings.embed_query(query)  # Get query embedding
+    query_embedding = np.array([query_embedding]).astype('float32')
+    distances, indices = index.search(query_embedding, k)  # Perform search
+    return [all_documents[i] for i in indices[0]]
 
-    # Define prompt template
+async def rag(query: str, contexts: list) -> str:
+    print("> RAG Called")  # we'll add this so we can see when this is being used
+    context_str = "\n".join(contexts)
+    # place query and contexts into RAG prompt
     template = """
     If the message is a question, use the context to answer it. If not, use the context to make any suggestions- remember you are supposed to be empathetic and kind, consider that you are talking
     to a UCSD student. Direct students to Community Connections events related to their problem if possible.
@@ -133,28 +136,11 @@ def initialize_rag():
     Message: {question}
     """
     prompt = PromptTemplate.from_template(template)
-    
-    config = RailsConfig.from_path("./config")
-    guardrails = RunnableRails(config)
-
-    # Define the RAG chain
-    chain = (
-        {
-            "context": lambda x: retriever(x["question"]),
-            "question": lambda x: x["question"],
-        }
-        | prompt
-        | (guardrails | model)
-        | parser
+    # generate answer
+    res = openai.Completion.create(
+        engine=MODEL,
+        prompt=prompt,
+        temperature=0.0,
+        max_tokens=100
     )
-
-    #rails = LLMRails(config)
-    #response = rails.generate(messages=[{
-    #    "role": "user",
-    #    "content": "I wanna kill myself"
-    #}])
-    #print(response["content"])
-    #info = rails.explain()
-    #print(info.colang_history)
-
-    return chain
+    return res['choices'][0]['text']

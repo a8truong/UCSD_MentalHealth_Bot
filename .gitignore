@@ -6,6 +6,6 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-mental-health-bot/
+mental-health/
 __pycache__
 .DS_Store
