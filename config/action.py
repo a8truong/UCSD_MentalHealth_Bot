@@ -18,7 +18,9 @@ from nemoguardrails.integrations.langchain.runnable_rails import RunnableRails
 import requests
 from bs4 import BeautifulSoup
 from langchain.schema import Document
-import openai
+
+from langchain.prompts import PromptTemplate
+from langchain.schema.output_parser import StrOutputParser
 
 # Load environment variables
 load_dotenv()
@@ -85,6 +87,7 @@ import numpy as np
 
 @action(is_system_action=True)
 async def retrieve(query: str) -> list:
+    print('Hi, retrieve')
     embeddings = OpenAIEmbeddings()
 
     # Load and process documents
@@ -124,23 +127,29 @@ async def retrieve(query: str) -> list:
     return [all_documents[i] for i in indices[0]]
 
 async def rag(query: str, contexts: list) -> str:
-    print("> RAG Called")  # we'll add this so we can see when this is being used
-    context_str = "\n".join(contexts)
-    # place query and contexts into RAG prompt
-    template = """
-    If the message is a question, use the context to answer it. If not, use the context to make any suggestions- remember you are supposed to be empathetic and kind, consider that you are talking
-    to a UCSD student. Direct students to Community Connections events related to their problem if possible.
-    
-    Context: {context}
+    print("> RAG Called")  
+    relevant_chunks = "\n".join([doc.page_content for doc in contexts])
+    model = ChatOpenAI(openai_api_key=OPENAI_API_KEY, model=MODEL)
 
-    Message: {question}
+    # place query and contexts into RAG prompt
+    TEMPLATE = """
+    If the message is a question, use the context to answer it. If not, use the context to make any suggestions.
+    Remember to be empathetic and kind, considering you are talking to a UCSD student. 
+    Direct students to Community Connections events related to their problem if possible.
+
+    Context:
+    {context}
+
+    Query: {question}
+
+    Answer:
     """
-    prompt = PromptTemplate.from_template(template)
-    # generate answer
-    res = openai.Completion.create(
-        engine=MODEL,
-        prompt=prompt,
-        temperature=0.0,
-        max_tokens=100
-    )
-    return res['choices'][0]['text']
+    prompt_template = PromptTemplate.from_template(TEMPLATE)
+    input_variables = {"question": query, "context": relevant_chunks}
+
+    # Generate response using LangChain pipeline
+    output_parser = StrOutputParser()
+    chain = prompt_template | model | output_parser
+    answer = await chain.ainvoke(input_variables)
+
+    return answer

@@ -50,15 +50,10 @@ define user express_feelings
     "I had a horrible day..."
     "I'm feeling really down."
 
-define bot express_empathy
-    "I'm really sorry to hear that."
-    "That must be really tough."
-    "I can only imagine how you feel."
-
-define bot ask_follow_up
-    "Do you want to talk about it?"
-    "What happened?"
-    "What’s on your mind?"
+define bot express_empathy_and_ask_follow_up
+    "I'm really sorry to hear that. Do you want to talk about it?"
+    "That must be really tough. What’s on your mind?"
+    "I can only imagine how you feel. What happened?"
 
 define user share_details
     "His name was Buddy. He was with me for 10 years."
@@ -75,18 +70,24 @@ define bot offer_continued_support
     "Take care of yourself, and reach out if you need to."
     "You’re not alone. I’m here to listen anytime."
 
-define bot provide_mental_health_resources
-    $contexts = execute retrieve(query=$last_user_message)
-    $answer = execute rag(query=$last_user_message, contexts=$contexts)
-    bot $answer
-    
 define flow provide_resources
     user express_feelings
-    bot express_empathy
-    bot ask_follow_up
+    bot bot express_empathy_and_ask_follow_up
     user share_details
+    bot provide mental health resources
     $contexts = execute retrieve(query=$last_user_message)
     $answer = execute rag(query=$last_user_message, contexts=$contexts)
     bot $answer
     user accept_or_decline_resources
     bot offer_continued_support
+
+define user ask_for_UCSD_event_information
+    "When is the ADHD Coaching for Undergraduate Students event be held?"
+    "What is CAPS?"
+
+define flow provide_information
+    user ask_for_UCSD_event_information
+    bot provide information about UCSD events
+    $contexts = execute retrieve(query=$last_user_message)
+    $answer = execute rag(query=$last_user_message, contexts=$contexts)
+    bot $answer

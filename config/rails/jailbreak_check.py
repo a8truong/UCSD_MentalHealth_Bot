@@ -1,6 +1,5 @@
 
 import logging
-import random
 from typing import Optional
 
 from langchain import LLMChain, PromptTemplate

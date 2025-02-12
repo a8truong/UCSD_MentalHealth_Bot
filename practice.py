@@ -7,7 +7,7 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 config = RailsConfig.from_path("./config")
-rails = LLMRails(config)
+rails = LLMRails(config, verbose=True)
 rails.register_action(action=retrieve, name="retrieve")
 rails.register_action(action=rag, name="rag")
 
