@@ -20,7 +20,7 @@ rails.register_action(action=rag, name="rag")
 slide_window = 7
 
 def get_chat_history():
-#Get the history from the st.session_stage.messages according to the slide window parameter
+#Get the history from the st.session_stage.messages
     
     chat_history = []
     
@@ -31,15 +31,14 @@ def get_chat_history():
     return chat_history
 
 def summarize_question_with_history(chat_history, question):
-# To get the right context, use the LLM to first summarize the previous conversation
-# This will be used to get embeddings and find similar chunks in the docs for context
+# Use gpt to summarize chat history to fit in context
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages = [{
             "role": "system",
             "content": f"""
-        Based on the chat history below and the question, generate a query that extend the question
-        with the chat history provided. The query should be in natural language. 
+        Based on the chat history below and the question, generate a query that extends the question
+        with the chat history provided if the history is relevant. The query should be in natural language. 
         Answer with only the query. Do not add any explanation.
         
         <chat_history>

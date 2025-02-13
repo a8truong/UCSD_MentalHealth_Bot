@@ -135,7 +135,7 @@ async def rag(query: str, contexts: list) -> str:
     TEMPLATE = """
     If the message is a question, use the context to answer it. If not, use the context to make any suggestions.
     Remember to be empathetic and kind, considering you are talking to a UCSD student. 
-    Direct students to Community Connections events related to their problem if possible.
+    Direct students to events related to their problem if possible. Keep it simple.
 
     Context:
     {context}

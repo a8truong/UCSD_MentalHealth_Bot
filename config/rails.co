@@ -72,9 +72,8 @@ define bot offer_continued_support
 
 define flow provide_resources
     user express_feelings
-    bot bot express_empathy_and_ask_follow_up
+    bot express_empathy_and_ask_follow_up
     user share_details
-    bot provide mental health resources
     $contexts = execute retrieve(query=$last_user_message)
     $answer = execute rag(query=$last_user_message, contexts=$contexts)
     bot $answer
@@ -82,12 +81,11 @@ define flow provide_resources
     bot offer_continued_support
 
 define user ask_for_UCSD_event_information
-    "When is the ADHD Coaching for Undergraduate Students event be held?"
+    "When is the ADHD Coaching for Undergraduate Students event being held?"
     "What is CAPS?"
 
 define flow provide_information
     user ask_for_UCSD_event_information
-    bot provide information about UCSD events
     $contexts = execute retrieve(query=$last_user_message)
     $answer = execute rag(query=$last_user_message, contexts=$contexts)
     bot $answer
