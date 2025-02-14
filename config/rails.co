@@ -74,6 +74,7 @@ define flow provide_resources
     user express_feelings
     bot express_empathy_and_ask_follow_up
     user share_details
+    bot provide mental health resources related to the issues
     $contexts = execute retrieve(query=$last_user_message)
     $answer = execute rag(query=$last_user_message, contexts=$contexts)
     bot $answer
@@ -83,6 +84,21 @@ define flow provide_resources
 define user ask_for_UCSD_event_information
     "When is the ADHD Coaching for Undergraduate Students event being held?"
     "What is CAPS?"
+    "Where can I find a schedule of upcoming mental health events at UCSD?"
+    "Are there any stress management workshops happening this month?"
+    "What time is the 'Mindfulness for Academic Success' session?"
+    "How do I sign up for a support group at CAPS?"
+    "Is there a mental health event for graduate students this week?"
+    "Tell me more about the Let’s Talk program at UCSD."
+    "Are there any meditation sessions offered on campus?"
+    "When and where is the next depression support group meeting?"
+    "What kind of mental health services does CAPS provide?"
+    "Is the Headspace premium subscription still available for students?"
+    "Do you know if UCSD hosts any suicide prevention workshops?"
+    "Are there any upcoming events related to managing exam stress?"
+    "Can I join a peer support group for anxiety at UCSD?"
+    "How can I attend a workshop on imposter syndrome at UCSD?"
+    "Do I need to register for the procrastination workshop?"
 
 define flow provide_information
     user ask_for_UCSD_event_information

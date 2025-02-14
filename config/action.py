@@ -30,14 +30,18 @@ MODEL = "gpt-3.5-turbo"
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 def process_pdf(pdf_path, text_splitter):
-    """Process a single PDF file by loading and splitting it."""
+    """
+    Process a single PDF file by loading and splitting it.
+    """
     loader = PyPDFLoader(pdf_path)
     pages = loader.load()
     chunks = text_splitter.split_documents(pages)
     return chunks
 
 def load_multiple_pdfs(pdf_directory="data", chunk_size=500, chunk_overlap=100):
-    """Loads PDFs and splits them into smaller chunks using parallel processing."""
+    """
+    Loads PDFs and splits them into smaller chunks using parallel processing.
+    """
     pdf_files = glob.glob(os.path.join(pdf_directory, "*.pdf"))
     
     all_pages = []
@@ -135,7 +139,8 @@ async def rag(query: str, contexts: list) -> str:
     TEMPLATE = """
     If the message is a question, use the context to answer it. If not, use the context to make any suggestions.
     Remember to be empathetic and kind, considering you are talking to a UCSD student. 
-    Direct students to events related to their problem if possible. Keep it simple.
+    Direct students to events related to their problem if possible and provide the description of the resources provided. 
+    Keep it simple.
 
     Context:
     {context}

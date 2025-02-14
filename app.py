@@ -20,8 +20,9 @@ rails.register_action(action=rag, name="rag")
 slide_window = 7
 
 def get_chat_history():
-#Get the history from the st.session_stage.messages
-    
+    """
+    Get the history from the st.session_stage.messages
+    """
     chat_history = []
     
     start_index = max(0, len(st.session_state.messages) - slide_window)
@@ -31,7 +32,10 @@ def get_chat_history():
     return chat_history
 
 def summarize_question_with_history(chat_history, question):
-# Use gpt to summarize chat history to fit in context
+    """
+    To get the right context, use the LLM to first summarize the previous conversation
+    This will be used to get embeddings and find similar chunks in the docs for context
+    """
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages = [{
@@ -101,7 +105,6 @@ def main():
             st.write(response)
 
         st.session_state.messages.append({"role": "assistant", "content": response})
-
 
 
 if __name__ == "__main__":
