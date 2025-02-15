@@ -1,4 +1,3 @@
-from typing import Optional
 from nemoguardrails.actions import action
 
 import concurrent.futures
@@ -10,10 +9,6 @@ from langchain_openai.embeddings import OpenAIEmbeddings
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.prompts import PromptTemplate
-from operator import itemgetter
-
-from nemoguardrails import RailsConfig, LLMRails
-from nemoguardrails.integrations.langchain.runnable_rails import RunnableRails
 
 import requests
 from bs4 import BeautifulSoup
