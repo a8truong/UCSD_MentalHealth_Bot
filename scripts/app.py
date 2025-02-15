@@ -13,7 +13,7 @@ client = OpenAI()
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-config = RailsConfig.from_path("./config")
+config = RailsConfig.from_path("./scripts/config")
 rails = LLMRails(config)
 rails.register_action(action=retrieve, name="retrieve")
 rails.register_action(action=rag, name="rag")
