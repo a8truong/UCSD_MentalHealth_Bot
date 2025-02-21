@@ -1,5 +1,5 @@
 import streamlit as st
-from config.action import retrieve, rag
+from config.action import retrieve, rag, concern
 from nemoguardrails import RailsConfig, LLMRails
 from dotenv import load_dotenv
 import os
@@ -17,55 +17,48 @@ config = RailsConfig.from_path("./scripts/config")
 rails = LLMRails(config)
 rails.register_action(action=retrieve, name="retrieve")
 rails.register_action(action=rag, name="rag")
-slide_window = 7
+rails.register_action(action=concern, name="concern")
+slide_window = 2  # Define when to summarize chat history
 
 def get_chat_history():
     """
-    Get the history from the st.session_stage.messages
+    Get the chat history from st.session_state.messages, excluding the last two messages.
     """
-    chat_history = []
-    
-    start_index = max(0, len(st.session_state.messages) - slide_window)
-    for i in range (start_index , len(st.session_state.messages) -1):
-         chat_history.append(st.session_state.messages[i])
+    if len(st.session_state.messages) <= 2:
+        return []  # Not enough messages to summarize
 
-    return chat_history
+    # Exclude the last two messages (latest user query and assistant response)
+    return st.session_state.messages[:-2][-slide_window:]
 
-def summarize_question_with_history(chat_history, question):
+def summarize_chat_history(chat_history):
     """
-    To get the right context, use the LLM to first summarize the previous conversation
-    This will be used to get embeddings and find similar chunks in the docs for context
+    Summarizes the chat history, excluding the most recent two messages.
     """
+    if not chat_history:
+        return ""
+
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages = [{
+        model="gpt-3.5-turbo",
+        messages=[{
             "role": "system",
             "content": f"""
-        Based on the chat history below and the question, generate a query that extends the question
-        with the chat history provided if the history is relevant. The query should be in natural language. 
-        Answer with only the query. Do not add any explanation.
-        
-        <chat_history>
-        {chat_history}
-        </chat_history>
-        <question>
-        {question}
-        </question>
-        """
-        }, {
-            "role": "user",
-            "content": question
+            Summarize the chat history provided below into a concise and natural form, 
+            keeping the key details relevant to the conversation. If mental health concerns 
+            such as stress, anxiety, or emotional distress are mentioned, ensure the summary 
+            includes references to helpful resources like mental health workshops, events, or counseling services.
+            
+            <chat_history>
+            {chat_history}
+            </chat_history>
+            """
         }],
-        max_tokens=2048,
+        max_tokens=512,
         temperature=0
     )
 
-    summary = response.choices[0].message.content 
-
-    return summary
+    return response.choices[0].message.content.strip()
 
 def main():
-
     st.title("UCSD Mental Health Bot")
 
     if "messages" not in st.session_state:
@@ -76,11 +69,10 @@ def main():
             st.write(message["content"])
 
     if prompt := st.chat_input("How can I help you?"):
-
         if "messages" not in st.session_state:
             st.session_state.messages = [
                 {"role": "system", "content": "You are a therapist chatbot focused on UCSD students. \
-                Approach responses in a carefully, being kind and understanding."}
+                Approach responses carefully, being kind and understanding."}
             ]
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
@@ -88,15 +80,17 @@ def main():
 
         async def chat():
             """
-            Generate response asynchronously
+            Generate response asynchronously, summarizing chat history if needed.
             """
             chat_history = get_chat_history()
 
-            if chat_history != []: #There is chat_history, so not first question
-                question_summary = summarize_question_with_history(chat_history, prompt)
-                response = await rails.generate_async(prompt=question_summary)
+            if len(chat_history) >= slide_window:  # Summarize history if it exceeds threshold
+                summarized_history = summarize_chat_history(chat_history)
+                response = await rails.generate_async(prompt=summarized_history + " " + prompt)
+                print(summarized_history)
             else:
                 response = await rails.generate_async(prompt=prompt)
+
             return response
 
         response = asyncio.run(chat())
@@ -105,7 +99,6 @@ def main():
             st.write(response)
 
         st.session_state.messages.append({"role": "assistant", "content": response})
-
 
 if __name__ == "__main__":
     main()

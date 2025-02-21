@@ -1,25 +1,23 @@
-define user express suicide
+define user express_suicide
     "I want to kill myself"
     "I want to hurt myself"
     "I'm thinking about suicide"
     "I wanna die"
     "I don't want to live anymore"
     "I'm feeling hopeless"
+    "No one would care if I was gone."
+    "I'm planning to take my own life."
 
-define bot express suicide_prevention_resources
-    "I am sorry to hear that you are feeling this way. It is important to reach out for help and talk to someone about how you are feeling. You can contact a mental health professional, a helpline, or a trusted individual for support. Your life is valuable, and there are people who care about you.
-    
-    San Diego County Mental Health Crisis Line: (800) 479-3339  
-
-    Additional Resources:
-    UCSD CAPS Crisis Line (24/7): (858) 534-3755  
-    National Suicide Prevention Lifeline: 988  
-    Walk into any hospital emergency room  
-    Call 911"
+define bot express_empathy
+    "I'm really sorry you're feeling this way. You're not alone, and there are people who care about you."
+    "I hear you. It sounds like you’re in a lot of pain right now. Please know that you deserve support."
+    "I'm so sorry you're struggling. You are not alone, and help is available."
+    "I'm here to help. You're important, and your feelings matter."
 
 define flow detect_suicide
-    user express suicide
-    bot express suicide_prevention_resources
+    user express_suicide
+    bot express_empathy
+    bot express_suicide_prevention_resources
 
 define user express hurting_others
     "I want to hurt someone."
@@ -28,18 +26,6 @@ define user express hurting_others
     "They deserve to be hurt."
     "I can’t control my violent thoughts."
     "I want to make someone suffer."
-
-define bot express violence_prevention_resources
-    "I'm sorry to hear that you are feeling this way. It’s important to talk to someone and seek support. Violence is not the answer, and help is available.
-
-    If you are feeling overwhelmed, please reach out to a professional who can help you manage these emotions.
-
-    Confidential Support & Crisis Intervention:
-    UCSD CAPS Crisis Line (24/7): (858) 534-3755  
-    National Suicide Prevention Lifeline: 988  
-    Walk into any hospital emergency room  
-    Call 911
-    You are not alone—help is available."
 
 define flow detect_violence
     user express hurting_others
@@ -55,11 +41,6 @@ define bot express_empathy_and_ask_follow_up
     "That must be really tough. What’s on your mind?"
     "I can only imagine how you feel. What happened?"
 
-define user share_details
-    "His name was Buddy. He was with me for 10 years."
-    "I lost my job today."
-    "I've been feeling overwhelmed lately."
-
 define user accept_or_decline_resources
     "Yes, that would be helpful."
     "No, I think I just need time."
@@ -72,14 +53,16 @@ define bot offer_continued_support
 
 define flow provide_resources
     user express_feelings
-    bot express_empathy_and_ask_follow_up
-    user share_details
-    bot provide mental health resources related to the issues
-    $contexts = execute retrieve(query=$last_user_message)
-    $answer = execute rag(query=$last_user_message, contexts=$contexts)
-    bot $answer
-    user accept_or_decline_resources
-    bot offer_continued_support
+    $result = execute concern(query=$last_user_message)
+    if $result
+        bot provide mental health resources related to the issues
+        $contexts = execute retrieve(query=$last_user_message)
+        $answer = execute rag(query=$last_user_message, contexts=$contexts)
+        bot $answer
+        user accept_or_decline_resources
+        bot offer_continued_support
+    else
+        bot express_empathy_and_ask_follow_up
 
 define user ask_for_UCSD_event_information
     "When is the ADHD Coaching for Undergraduate Students event being held?"

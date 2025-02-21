@@ -16,6 +16,7 @@ from langchain.schema import Document
 
 from langchain.prompts import PromptTemplate
 from langchain.schema.output_parser import StrOutputParser
+from openai import OpenAI
 
 # Load environment variables
 load_dotenv()
@@ -133,10 +134,12 @@ async def rag(query: str, contexts: list) -> str:
     # place query and contexts into RAG prompt
     TEMPLATE = """
     If the message is a question, use the context to answer it. If not, use the context to make any suggestions.
-    Remember to be empathetic and kind, considering you are talking to a UCSD student. 
+    Remember to be empathetic and kind, considering you are talking to a UCSD student.
     Direct students to events related to their problem if possible and provide the description of the resources provided. 
-    Keep it simple.
+    Please also include information on how to sign up for any events or access any resources mentioned.
 
+    Keep it simple.
+    
     Context:
     {context}
 
@@ -153,3 +156,39 @@ async def rag(query: str, contexts: list) -> str:
     answer = await chain.ainvoke(input_variables)
 
     return answer
+
+async def concern(query: str) -> bool:
+    """
+    Uses an LLM to check if the prompt contains more than one sentence
+    and if it discusses mental health concerns such as stress, anxiety, or emotional distress.
+
+    Args:
+        prompt (str): The input prompt to analyze.
+
+    Returns:
+        bool: True if the prompt is a mental health concern with multiple sentences.
+    """
+    print('is mental health concern?')
+    # Call the LLM to analyze the prompt
+    client = OpenAI()
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",  # Use the desired LLM model
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a helpful assistant that detects if a message describes a mental health concern."
+            },
+            {
+                "role": "user",
+                "content": f"Does the following message contain mental health concerns and multiple sentences? {query}"
+            }
+        ],
+        max_tokens=150,
+        temperature=0.5
+    )
+
+    result = response.choices[0].message.content.strip().lower()
+    # Check the response from the model to determine if it recognizes multiple sentences and mental health concerns
+    if "yes" in result and "multiple sentences" in result and "mental health" in result:
+        return True
+    return False
