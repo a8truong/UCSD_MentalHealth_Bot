@@ -72,7 +72,7 @@ def main():
         if "messages" not in st.session_state:
             st.session_state.messages = [
                 {"role": "system", "content": "You are a therapist chatbot focused on UCSD students. \
-                Approach responses carefully, being kind and understanding."}
+                Approach responses carefully, being kind and understanding. Make it interactive."}
             ]
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
