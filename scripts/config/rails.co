@@ -52,7 +52,7 @@ define flow provide_resources
     $result = execute concern(query=$last_user_message)
     if $result
         bot provide mental health resources related to the issues
-        $contexts = execute retrieve(query=$last_user_message)
+        $contexts = execute ask(question=$last_user_message)
         $answer = execute rag(query=$last_user_message, contexts=$contexts)
         bot $answer
         user accept_or_decline_resources
@@ -81,6 +81,6 @@ define user ask_for_UCSD_event_information
 
 define flow provide_information
     user ask_for_UCSD_event_information
-    $contexts = execute retrieve(query=$last_user_message)
+    $contexts = execute ask(question=$last_user_message)
     $answer = execute rag(query=$last_user_message, contexts=$contexts)
     bot $answer

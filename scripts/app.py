@@ -1,5 +1,5 @@
 import streamlit as st
-from config.action import retrieve, rag, concern
+from config.action import rag, concern, semantic_cache
 from nemoguardrails import RailsConfig, LLMRails
 from dotenv import load_dotenv
 import os
@@ -15,7 +15,12 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 config = RailsConfig.from_path("./scripts/config")
 rails = LLMRails(config)
-rails.register_action(action=retrieve, name="retrieve")
+
+# Initialize cache only once during the session
+if "cache" not in st.session_state:
+    st.session_state.cache = semantic_cache("4cache.json")
+
+rails.register_action(action=st.session_state.cache.ask, name="ask")
 rails.register_action(action=rag, name="rag")
 rails.register_action(action=concern, name="concern")
 slide_window = 2  # Define when to summarize chat history
@@ -90,6 +95,7 @@ def main():
                 print(summarized_history)
             else:
                 response = await rails.generate_async(prompt=prompt)
+                print(">Prompt: " + prompt)
 
             return response
 

@@ -2,14 +2,17 @@ from nemoguardrails import RailsConfig, LLMRails
 import os
 from dotenv import load_dotenv
 
-from config.action import retrieve, rag
+from config.action import rag, semantic_cache, concern
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 config = RailsConfig.from_path("./scripts/config")
 rails = LLMRails(config)
-rails.register_action(action=retrieve, name="retrieve")
+
+cache = semantic_cache("4cache.json")
+rails.register_action(action=cache.ask, name="ask")
 rails.register_action(action=rag, name="rag")
+rails.register_action(action=concern, name="concern")
 
 import asyncio
 
@@ -29,11 +32,11 @@ async def chat():
         response = await rails.generate_async(prompt=user_input)
         print(f"Bot: {response}")
 
-        # Optional: Debugging info
-        info = rails.explain()
-        print("\nDebug Info:")
-        print(info.print_llm_calls_summary())
-        print(info.colang_history)
+        # # Optional: Debugging info
+        # info = rails.explain()
+        # print("\nDebug Info:")
+        # print(info.print_llm_calls_summary())
+        # print(info.colang_history)
 
 # Run the interactive chat loop
 asyncio.run(chat())
