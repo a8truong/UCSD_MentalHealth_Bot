@@ -6,6 +6,7 @@ import os
 import asyncio
 import openai
 from openai import OpenAI
+import re
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI()
@@ -100,6 +101,10 @@ def main():
             return response
 
         response = asyncio.run(chat())
+
+        match = re.search(r'Bot message:\s*"([^"]+)"', response)
+        if match:
+            response = match.group(1)  # Extracted message
 
         with st.chat_message("assistant"):
             st.write(response)
