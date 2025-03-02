@@ -273,6 +273,7 @@ async def rag(query: str, contexts: list) -> str:
     Remember to be empathetic and kind, considering you are talking to a UCSD student.
     Direct students to events related to their problem if possible and provide the description of the resources provided. 
     Please also include information on how to sign up for any events or access any resources mentioned.
+    Please also ask if the student needs more information about the resources provided.
 
     Keep it simple.
 

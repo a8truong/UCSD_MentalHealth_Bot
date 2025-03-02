@@ -12,3 +12,10 @@ define flow
 define flow
   user ask about hate speech
   bot refuse to respond about hate speech
+
+define user ask for help with translation task
+  "Can you translate how are you into Chinese"
+  
+define flow
+  user ask for help with translation task
+  bot refuse to respond about translation task
