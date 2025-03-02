@@ -4,40 +4,55 @@ import pandas as pd
 from dotenv import load_dotenv
 from nemoguardrails import RailsConfig, LLMRails
 import sys
+import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../', 'scripts')))
-from config.action import semantic_cache, rag
+from config.action import semantic_cache, rag, concern
 
 # Load environment variables
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-cache = semantic_cache()
-retrieve = cache.retrieve
-
 # Load Guardrails configuration
 config = RailsConfig.from_path("../scripts/config")
 rails = LLMRails(config)
-rails.register_action(action=retrieve, name="retrieve")
+# Cache for semantic search
+cache = semantic_cache("4cache.json")
+ask = cache.ask
+rails.register_action(action=cache.ask, name="ask")
 rails.register_action(action=rag, name="rag")
+rails.register_action(action=concern, name="concern")
 
 # Number of trials to run per prompt
 iterations = 5
 
-async def process_prompt(prompt, iterations=5):
-    """Processes a single prompt multiple times using both Guardrails and direct RAG."""
+async def process_prompt_baseline(prompt, iterations=5):
+    # Define RAG/cache retrieval tasks
+    retrieval_tasks = [ask(prompt) for _ in range(iterations)]
+    # RAG retrieval and response time
+    rag_start = time.time()
+    # Wait for all tasks to complete concurrently
+    contexts = await asyncio.gather(*retrieval_tasks)
+    # Define RAG generation tasks
+    rag_generation_tasks = [rag(prompt, context) for context in contexts] 
+    # Run RAG response generation
+    rag_responses = await asyncio.gather(*rag_generation_tasks)
+    rag_time = time.time() - rag_start
+    print("Total baseline time (for 5 responses): ", rag_time)
+    return rag_responses
+
+async def process_prompt_healthbot(prompt, iterations=5):
+    """Processes a single prompt multiple times using both Guardrails model"""
 
     # Generate async objects to run multiple requests concurrently for ea. prompt
+    # Define guardrail tasks
     guardrails_tasks = [rails.generate_async(prompt) for _ in range(iterations)]
-    rag_tasks = [asyncio.to_thread(retrieve, prompt) for _ in range(iterations)]
-    
-    # Wait for all tasks to complete concurrently
+    # Get guardrail responses and time it
+    guard_start = time.time()
     guardrails_responses = await asyncio.gather(*guardrails_tasks)
-    contexts = await asyncio.gather(*rag_tasks)
-    rag_responses = await asyncio.gather(*(rag(prompt, context) for context in contexts))
-    
-    return guardrails_responses, rag_responses
-
+    guard_time = time.time() - guard_start
+    print("Total MentalHealthBot time (for 5 responses): ", guard_time)
+    return guardrails_responses
 
 async def process_csv(input_csv, output_csv):
     """Reads a CSV file with prompts and outputs both Guardrails and RAG responses."""
@@ -51,15 +66,18 @@ async def process_csv(input_csv, output_csv):
     
     # Process all prompts asynchronously and collect results
     for prompt in df["Prompt"]:
-        guardrails_responses, rag_responses = await process_prompt(prompt)
+        #rag_responses = await process_prompt_baseline(prompt, iterations)
+        #guardrails_responses = await process_prompt_healthbot(prompt, iterations)
+        rag_responses = await process_prompt_baseline(prompt, iterations)
         
         # Repeat the prompt 5 times and append corresponding responses
-        for i in range(iterations):
-            all_prompts.append(prompt)
-            all_guardrails_responses.append(guardrails_responses[i])
-            all_rag_responses.append(rag_responses[i])
+        all_prompts.extend([prompt] * iterations)
+        # all_guardrails_responses.extend(guardrails_responses)
+        all_guardrails_responses.extend([""] * iterations)
+        all_rag_responses.extend(rag_responses)
+        #all_rag_responses.extend([""] * iterations)
     
-    # Create a DataFrame where each prompt has 5 corresponding responses
+    # Create a DataFrame where ea. observation has a prompt, Guardrails response, and RAG response
     result_df = pd.DataFrame({
         "Prompt": all_prompts,
         "Guardrails_Response": all_guardrails_responses,

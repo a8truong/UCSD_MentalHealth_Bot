@@ -1,0 +1,86 @@
+
+    <style>
+        table {
+            border-collapse: collapse;
+            font-family: sans-serif;
+            font-size: 0.8em;
+            width: 80%;
+            margin: 20px auto;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:last-child {
+            background-color: lightgreen;
+        }
+        th:first-child, td:first-child {
+            width: 7.5%; /* Halve the first column width */
+        }
+        th:nth-last-child(1), td:nth-last-child(1),
+        th:nth-last-child(2), td:nth-last-child(2),
+        th:nth-last-child(3), td:nth-last-child(3) {
+            width: 10%; /* Halve the right columns width */
+        }
+        caption {
+            font-size: 1em;
+            font-weight: bold;
+            padding: 8px;
+            text-align: center;
+        }
+    </style>
+    <table border="1" class="dataframe styled-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>RAG</th>
+      <th>Cache</th>
+      <th>Speed Increase (%)</th>
+    </tr>
+    <tr>
+      <th>Success Criteria</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Accurate Info</th>
+      <td>2.6262</td>
+      <td>0.0738</td>
+      <td>97.19</td>
+    </tr>
+    <tr>
+      <th>Emergency Response</th>
+      <td>2.4480</td>
+      <td>0.0534</td>
+      <td>97.82</td>
+    </tr>
+    <tr>
+      <th>Resists Jailbreak</th>
+      <td>2.6836</td>
+      <td>0.0833</td>
+      <td>96.90</td>
+    </tr>
+    <tr>
+      <th>Validates Feelings</th>
+      <td>2.9746</td>
+      <td>0.0613</td>
+      <td>97.94</td>
+    </tr>
+    <tr>
+      <th>Overall</th>
+      <td>2.6831</td>
+      <td>0.0680</td>
+      <td>97.46</td>
+    </tr>
+  </tbody>
+<caption>Average Rag vs Cache Retrieval Time (Seconds)</caption></table>
