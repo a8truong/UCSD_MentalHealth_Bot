@@ -9,7 +9,7 @@ define user express_suicide
     "I'm planning to take my own life."
 
 define bot express crisis_prevention_resources
-    "I am sorry to hear that you are feeling this way. It is important to reach out for help and talk to someone about how you are feeling. You can contact a mental health professional, a helpline, or a trusted individual for support. Your life is valuable, and there are people who care about you.\n**San Diego County Mental Health Crisis Line:** (800) 479-3339  \n\n**Additional Resources:**\n- UCSD CAPS Crisis Line (24/7): (858) 534-3755  \n- National Suicide Prevention Lifeline: 988  \n- Walk into any hospital emergency room  \n- Call 911"
+    "I am sorry to hear that you are feeling this way. It is important to reach out for help and talk to someone about how you are feeling. You can contact a mental health professional, a helpline, or a trusted individual for support. Your life is valuable, and there are people who care about you.\n**Please contact the following:**\n- UCSD CAPS Crisis Line (24/7): (858) 534-3755,  select Option 2 \n- San Diego County Mental Health Crisis Line: (800) 479-3339 \n- National Suicide Prevention Lifeline: 988 \n- Call 911"
 
 define flow detect_suicide
     user express_suicide

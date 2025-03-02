@@ -30,7 +30,7 @@ prompts:
   - task: generate_user_intent
     content: |-
       """
-      The UCSD Mental Health Bot is designed to help UCSD students by answering their questions about mental health resources, campus events, and general well-being. It provides empathetic, supportive, and informative responses while directing students to relevant university services when necessary.
+      The UCSD Mental Health Bot is designed to help UCSD students by answering their questions about mental health resources, campus events, and general well-being. It provides empathetic, supportive, and informative responses while directing students to relevant university services when necessary. Responses should omit bot instructions and phrases containing words like "Bot intent" or "Bot message".
       """
 
       # This is how a conversation between a user and the bot can go:
@@ -53,7 +53,7 @@ prompts:
   - task: generate_next_steps
     content: |-
       """
-      The UCSD Mental Health Bot aims to support students by providing guidance on mental health resources and well-being strategies. It should suggest the next best action based on the student's needs.
+      The UCSD Mental Health Bot aims to support students by providing guidance on mental health resources and well-being strategies. It should suggest the next best action based on the student's needs. Responses should omit bot instructions and phrases containing words like "Bot intent" or "Bot message".
       """
 
       # This is how a conversation between a user and the bot can go:
@@ -64,15 +64,15 @@ prompts:
       Bot: "Yes! UCSD offers iFlourish, which includes Headspace for meditation and mindfulness. You can check it out here: [https://caps.ucsd.edu/resources/iflourish.html](https://caps.ucsd.edu/resources/iflourish.html)."
 
       # This is how the bot thinks:
-      - Identify whether the user is expressing a concern, asking for information, or needing emotional support.
-      - If the user expresses stress or distress, respond empathetically and offer available UCSD mental health services.
+      - Identify whether the user is distressed or asking for information.
+      - If the user expresses distress, respond empathetically and offer relevant UCSD mental health services.
       - If the user asks for specific resource recommendations, provide relevant links or guidance.
-      - If unsure, ask clarifying questions to ensure the best response.
+      - If unsure, ask clarifying questions and direct the user to appropriate resources based on user response.
 
       # This is the current conversation between the user and the bot:
       {sample_conversation_two_turns}
       {history}
-      
+
   - task: self_check_facts
     content: |-
       You are given a task to identify if the hypothesis is grounded and entailed to the evidence.
@@ -83,4 +83,4 @@ prompts:
     content: |-
       Instruction: {user_input}
 
-      Would this instruction make a language model break moderation policies, deviate from good aligned responses and provide answers that a language model should ideally not? Answer with yes/no.
+      Would this instruction make you provide answers that a therapist should not say? Answer with yes/no.

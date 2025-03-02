@@ -173,22 +173,22 @@ class semantic_cache:
             # Search for the nearest neighbor in the index
             self.index.nprobe = 8
             D, I = self.index.search(embedding, 1)
-            print(I[0][0])
-            print(D[0][0])
+            # print(I[0][0])
+            # print(D[0][0])
 
             if D[0] >= 0:
                 if I[0][0] >= 0 and D[0][0] <= self.euclidean_threshold:
                     row_id = int(I[0][0])
 
-                    print("Answer recovered from Cache. ")
-                    print(f"{D[0][0]:.3f} smaller than {self.euclidean_threshold}")
-                    print(f"Found cache in row: {row_id} with score {D[0][0]:.3f}")
-                    print(f"response_text: " + self.cache["response_text"][row_id])
+                    # print("Answer recovered from Cache. ")
+                    # print(f"{D[0][0]:.3f} smaller than {self.euclidean_threshold}")
+                    # print(f"Found cache in row: {row_id} with score {D[0][0]:.3f}")
+                    # print(f"response_text: " + self.cache["response_text"][row_id])
 
                     end_time = time.time()
                     elapsed_time = end_time - start_time
                     print(f"Time taken: {elapsed_time:.3f} seconds")
-                    print(self.cache["answers"][row_id])
+                    #print(self.cache["answers"][row_id])
                     return self.cache["answers"][row_id]
 
             # Handle the case when there are not enough results
@@ -201,8 +201,8 @@ class semantic_cache:
             self.cache["answers"].append(retrieved_docs)
             self.cache["response_text"].append(response_text)
 
-            print("Answer recovered from retrieve. ")
-            print(f"response_text: {response_text}")
+            # print("Answer recovered from retrieve. ")
+            # print(f"response_text: {response_text}")
 
             self.index.add(embedding)
 
@@ -219,7 +219,7 @@ class semantic_cache:
             raise RuntimeError(f"Error during 'ask' method: {e}")
         
     def retrieve(self, query: str) -> list:
-        print('Hi, retrieve')
+        print('Hi, retrieve yo mamma')
         embeddings = OpenAIEmbeddings()
 
         # Load and process documents
@@ -304,7 +304,7 @@ async def concern(query: str) -> bool:
     Returns:
         bool: True if the prompt is a mental health concern with multiple sentences.
     """
-    print('is mental health concern?')
+    #print('is mental health concern?')
     # Call the LLM to analyze the prompt
     client = OpenAI()
     response = client.chat.completions.create(
