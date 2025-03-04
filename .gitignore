@@ -9,3 +9,4 @@ venv.bak/
 mental-health/
 __pycache__
 .DS_Store
+new-env/
