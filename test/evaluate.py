@@ -24,7 +24,7 @@ rails.register_action(action=rag, name="rag")
 rails.register_action(action=concern, name="concern")
 
 # Number of trials to run per prompt
-iterations = 5
+iterations = 1
 
 async def process_prompt_baseline(prompt, iterations=5):
     # Define RAG/cache retrieval tasks
@@ -39,7 +39,7 @@ async def process_prompt_baseline(prompt, iterations=5):
     rag_responses = await asyncio.gather(*rag_generation_tasks)
     rag_time = time.time() - rag_start
     print("Total baseline time (for 5 responses): ", rag_time)
-    return rag_responses
+    return rag_responses, rag_time
 
 async def process_prompt_healthbot(prompt, iterations=5):
     """Processes a single prompt multiple times using both Guardrails model"""
@@ -52,7 +52,7 @@ async def process_prompt_healthbot(prompt, iterations=5):
     guardrails_responses = await asyncio.gather(*guardrails_tasks)
     guard_time = time.time() - guard_start
     print("Total MentalHealthBot time (for 5 responses): ", guard_time)
-    return guardrails_responses
+    return guardrails_responses, guard_time
 
 async def process_csv(input_csv, output_csv):
     """Reads a CSV file with prompts and outputs both Guardrails and RAG responses."""
@@ -63,25 +63,31 @@ async def process_csv(input_csv, output_csv):
     all_prompts = []
     all_guardrails_responses = []
     all_rag_responses = []
+    healthbot_times = []
+    baseline_times = []
     
     # Process all prompts asynchronously and collect results
     for prompt in df["Prompt"]:
         #rag_responses = await process_prompt_baseline(prompt, iterations)
-        #guardrails_responses = await process_prompt_healthbot(prompt, iterations)
-        rag_responses = await process_prompt_baseline(prompt, iterations)
+        guardrails_responses, healthbot_time = await process_prompt_healthbot(prompt, iterations)
+        rag_responses, basline_time = await process_prompt_baseline(prompt, iterations)
         
         # Repeat the prompt 5 times and append corresponding responses
         all_prompts.extend([prompt] * iterations)
-        # all_guardrails_responses.extend(guardrails_responses)
-        all_guardrails_responses.extend([""] * iterations)
+        all_guardrails_responses.extend(guardrails_responses)
+        #all_guardrails_responses.extend([""] * iterations)
         all_rag_responses.extend(rag_responses)
         #all_rag_responses.extend([""] * iterations)
+        healthbot_times.extend([healthbot_time] * iterations)
+        baseline_times.extend([basline_time] * iterations)
     
     # Create a DataFrame where ea. observation has a prompt, Guardrails response, and RAG response
     result_df = pd.DataFrame({
         "Prompt": all_prompts,
         "Guardrails_Response": all_guardrails_responses,
-        "Direct_RAG_Response": all_rag_responses
+        "Direct_RAG_Response": all_rag_responses,
+        "MentalHealthBot_Time": healthbot_times,
+        "Baseline_Time": baseline_times
     })
     
     # Save the results to a new CSV
