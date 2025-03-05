@@ -28,11 +28,11 @@ slide_window = 2  # Define when to summarize chat history
 
 def get_chat_history():
     """
-    Get the chat history from st.session_state.messages, excluding the last two messages.
+    Get the chat history from st.session_state.messages
     """
     if len(st.session_state.messages) <= 2:
         return []  # Not enough messages to summarize
-
+      
     # Exclude the last two messages (latest user query and assistant response)
     return st.session_state.messages[-5:-1]
 
@@ -93,6 +93,7 @@ def main():
             chat_history = get_chat_history()
 
             if len(chat_history) >= slide_window:  # Summarize history if it exceeds threshold
+                print(chat_history)
                 summarized_history = summarize_chat_history(chat_history)
                 p = "Chat history: " + summarized_history + " New prompt from user: " + prompt
                 response = await rails.generate_async(prompt=p)

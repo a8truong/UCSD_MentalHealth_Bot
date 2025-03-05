@@ -25,6 +25,7 @@ import json
 from sentence_transformers import SentenceTransformer
 import torch
 torch.classes.__path__ = []
+torch.set_num_threads(1)
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 

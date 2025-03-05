@@ -80,6 +80,12 @@ define user ask_for_UCSD_event_information
     "Do I need to register for the procrastination workshop?"
     "What is mindfulness studio?"
     "I am really stressed now. Can you provide me with some resources to manage my stress?"
+    "Are there any resources on campus that can help me manage my stress?"
+    "What is the Let's Talk program and when is it held?"
+    "How do I sign up for Headspace?"
+    "Who is Judy Goodman Fermin?"
+    "How do I manage my sadness?"
+    "What kind of mental health workshops are available?"
 
 define flow provide_information
     user ask_for_UCSD_event_information
