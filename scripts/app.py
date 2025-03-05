@@ -7,6 +7,7 @@ import asyncio
 import openai
 from openai import OpenAI
 import re
+import spacy
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI()
@@ -16,6 +17,8 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 config = RailsConfig.from_path("scripts/config")
 rails = LLMRails(config)
+
+nlp = spacy.load("en_core_web_sm")
 
 # Initialize cache only once during the session
 if "cache" not in st.session_state:
@@ -28,13 +31,37 @@ slide_window = 2  # Define when to summarize chat history
 
 def get_chat_history():
     """
-    Get the chat history from st.session_state.messages
+    Retrieve the last 5 messages from chat history (excluding the most recent one).
     """
     if len(st.session_state.messages) <= 2:
         return []  # Not enough messages to summarize
       
     # Exclude the last two messages (latest user query and assistant response)
     return st.session_state.messages[-5:-1]
+
+def extract_keywords(chat_history):
+    """Extracts meaningful keywords from the chat history using spaCy."""
+    if not chat_history:
+        return []
+
+    text = " ".join([msg["content"] for msg in chat_history if msg["role"] == "user"])
+    doc = nlp(text)
+
+    keywords = set()
+    for token in doc:
+        if token.pos_ in {"NOUN", "VERB", "PROPN"} and token.is_alpha:  # Extract nouns, verbs, and proper nouns
+            keywords.add(token.lemma_.lower())  # Use lemma to normalize words
+
+    return list(keywords)
+
+def generate_contextual_prompt(prompt, chat_history):
+    """Enhances the prompt with relevant keywords from chat history."""
+    keywords = extract_keywords(chat_history)
+    if keywords:
+        keyword_str = ", ".join(keywords)
+        prompt = f"Prior discussion included: {keyword_str}. User now asks: {prompt}"
+    
+    return prompt
 
 def summarize_chat_history(chat_history):
     """
@@ -66,6 +93,22 @@ def summarize_chat_history(chat_history):
 
     return response.choices[0].message.content.strip()
 
+async def chat(prompt):
+    """
+    Generate a response asynchronously, adding context from chat history.
+    """
+    chat_history = get_chat_history()
+    
+    if len(chat_history) >= slide_window:  # Summarize history if needed
+        summarized_history = " ".join([msg["content"] for msg in chat_history])
+        prompt = f"Chat history summary: {summarized_history}. New question: {prompt}"
+    
+    prompt = generate_contextual_prompt(prompt, chat_history)  # Add keywords from history
+    response = await rails.generate_async(prompt=prompt)
+    print(f"Final Prompt: {prompt}")
+
+    return response
+
 def main():
     st.title("UCSD Mental Health Bot")
 
@@ -86,25 +129,25 @@ def main():
         with st.chat_message("user"):
             st.write(prompt)
 
-        async def chat():
-            """
-            Generate response asynchronously, summarizing chat history if needed.
-            """
-            chat_history = get_chat_history()
+        # async def chat():
+        #     """
+        #     Generate response asynchronously, summarizing chat history if needed.
+        #     """
+        #     chat_history = get_chat_history()
 
-            if len(chat_history) >= slide_window:  # Summarize history if it exceeds threshold
-                print(chat_history)
-                summarized_history = summarize_chat_history(chat_history)
-                p = "Chat history: " + summarized_history + " New prompt from user: " + prompt
-                response = await rails.generate_async(prompt=p)
-                print(p)
-            else:
-                response = await rails.generate_async(prompt=prompt)
-                print(">Prompt: " + prompt)
+        #     if len(chat_history) >= slide_window:  # Summarize history if it exceeds threshold
+        #         print(chat_history)
+        #         summarized_history = summarize_chat_history(chat_history)
+        #         p = "Chat history: " + summarized_history + " New prompt from user: " + prompt
+        #         response = await rails.generate_async(prompt=p)
+        #         print(p)
+        #     else:
+        #         response = await rails.generate_async(prompt=prompt)
+        #         print(">Prompt: " + prompt)
 
-            return response
+        #     return response
 
-        response = asyncio.run(chat())
+        response = asyncio.run(chat(prompt))
 
         match = re.search(r'Bot message:\s*"([^"]+)"', response)
         if match:

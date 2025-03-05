@@ -97,6 +97,7 @@ define user ask_for_bot_function
     "Who are you?"
     "What kind of topics can you help me with?"
     "How can you help me?"
+    "What can you do?"
 
 define flow ask_bot_function
     user ask_for_bot_function 

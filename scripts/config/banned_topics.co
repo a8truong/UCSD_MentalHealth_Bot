@@ -7,15 +7,15 @@ define user ask about hate speech
 
 define flow
   user ask about cooking
-  bot refuse to respond about cooking
+  bot refuse to respond about cooking and indicate it is a mental health resource bot
 
 define flow
   user ask about hate speech
-  bot refuse to respond about hate speech
+  bot refuse to respond about hate speech and indicate it is a mental health resource bot
 
 define user ask for help with translation task
   "Can you translate how are you into Chinese"
   
 define flow
   user ask for help with translation task
-  bot refuse to respond about translation task
+  bot refuse to respond about translation task and indicate it is a mental health resource bot
