@@ -298,9 +298,15 @@ class semantic_cache:
 
         # Create FAISS index
         d = embeddings_array.shape[1]  # Embedding dimension
-        index = faiss.IndexFlatIP(d)   # Inner Product (Cosine Similarity)
+        if os.path.exists("faiss_index.bin"):
+            index = faiss.read_index("faiss_index.bin")
+        else:
+            index = faiss.IndexFlatIP(d)
         faiss.normalize_L2(embeddings_array)  # Normalize for Cosine Similarity
         index.add(embeddings_array)  # Add embeddings
+
+        # Save index for reuse
+        faiss.write_index(index, "faiss_index.bin")
 
         k = min(5, embeddings_array.shape[0])  # Ensure k is within range
         query_embedding = embeddings.embed_query(query)
@@ -321,16 +327,15 @@ async def rag(query: str, contexts: list) -> str:
 
     # place query and contexts into RAG prompt
     TEMPLATE = """
-    If the message is a question, use the context to answer it. If not, use the context to make any suggestions.
-    Remember to be empathetic and kind, considering you are talking to a UCSD student.
-    Direct students to events related to their problem if possible and provide the description of the resources provided. 
-    Please also include information on how to sign up for any events or access any resources mentioned.
-    Please also ask if the student needs more information about the resources provided.
-    Try break it down into multiple paragraphs.
+    You are a UCSD mental health assistant. Your goal is to recommend resources based on the provided context.
 
-    Try not to recommend resources that have already been recommended in the history chat.
+    If the context does not contain a relevant resource, say: "I couldn't find any relevant information, but here are general support options..."
 
-    Keep it simple.
+    Guidelines:
+    1. Be **empathetic** and **kind**.
+    2. Recommend **only new** resources that haven't been mentioned before.
+    3. Provide **event sign-up details**, if available.
+    4. Break responses into **clear paragraphs**.
 
     Context:
     {context}
