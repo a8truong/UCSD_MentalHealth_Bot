@@ -78,9 +78,20 @@ define user ask_for_UCSD_event_information
     "Can I join a peer support group for anxiety at UCSD?"
     "How can I attend a workshop on imposter syndrome at UCSD?"
     "Do I need to register for the procrastination workshop?"
+    "What is mindfulness studio?"
+    "I am really stressed now. Can you provide me with some resources to manage my stress?"
 
 define flow provide_information
     user ask_for_UCSD_event_information
     $contexts = execute ask(question=$last_user_message)
     $answer = execute rag(query=$last_user_message, contexts=$contexts)
     bot $answer
+
+define user ask_for_bot_function 
+    "Who are you?"
+    "What kind of topics can you help me with?"
+    "How can you help me?"
+
+define flow ask_bot_function
+    user ask_for_bot_function 
+    bot indicate it is a mental health resource bot

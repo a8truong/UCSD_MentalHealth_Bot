@@ -26,6 +26,8 @@ from sentence_transformers import SentenceTransformer
 import torch
 torch.classes.__path__ = []
 
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
 # Load environment variables
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -44,8 +46,14 @@ def process_pdf(pdf_path, text_splitter):
 
 def load_multiple_pdfs(pdf_directory="data", chunk_size=500, chunk_overlap=100):
     """
-    Loads PDFs and splits them into smaller chunks using parallel processing.
+    Loads PDFs and splits them into smaller chunks. Uses cached data if available.
     """
+    # Try to load cached PDF data
+    pdf_documents = load_pdf_data()
+    if pdf_documents:
+        print("Loaded PDF data from cache.")
+        return pdf_documents  # Use cached data
+
     pdf_files = glob.glob(os.path.join(pdf_directory, "*.pdf"))
     
     all_pages = []
@@ -53,16 +61,32 @@ def load_multiple_pdfs(pdf_directory="data", chunk_size=500, chunk_overlap=100):
         chunk_size=chunk_size, chunk_overlap=chunk_overlap
     )
     
-    # Use ThreadPoolExecutor to parallelize PDF processing
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        # Submit tasks to the executor
         results = list(executor.map(lambda pdf: process_pdf(pdf, text_splitter), pdf_files))
     
-    # Flatten the list of chunks (since executor.map returns a list of lists)
     for result in results:
         all_pages.extend(result)
 
+    # Save processed PDFs to cache
+    save_pdf_data(all_pages)
+
     return all_pages
+
+PDF_CACHE_FILE = "scripts/config/kb/pdf_data.json"
+
+def save_pdf_data(documents):
+    """Save processed PDF data to a JSON file."""
+    data = [{"source": doc.metadata["source"], "content": doc.page_content} for doc in documents]
+    with open(PDF_CACHE_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+
+def load_pdf_data():
+    """Load processed PDF data from JSON file."""
+    if os.path.exists(PDF_CACHE_FILE):
+        with open(PDF_CACHE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return [Document(page_content=item["content"], metadata={"source": item["source"]}) for item in data]
+    return []
 
 def fetch_and_parse_url(url):
     """Fetches and parses the content of a web page."""
@@ -89,6 +113,22 @@ def scrape_multiple_websites(urls):
     
     # Filter out any None results (failed fetches)
     return [result for result in results if result is not None]
+
+CACHE_FILE = "scripts/config/kb/scraped_data.json"
+
+def save_scraped_data(documents):
+    """Save scraped documents to a JSON file."""
+    data = [{"source": doc.metadata["source"], "content": doc.page_content} for doc in documents]
+    with open(CACHE_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+
+def load_scraped_data():
+    """Load previously scraped data from JSON file."""
+    if os.path.exists(CACHE_FILE):
+        with open(CACHE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return [Document(page_content=item["content"], metadata={"source": item["source"]}) for item in data]
+    return []
 
 def init_cache():
     index = faiss.IndexFlatL2(768)
@@ -225,38 +265,49 @@ class semantic_cache:
         # Load and process documents
         pages = load_multiple_pdfs("data")
 
-        # List of URLs to scrape
-        urls = [
-            "https://caps.ucsd.edu/services/groups.html#Psychotherapy-and-Support-Group",
-            "https://caps.ucsd.edu/services/letstalk.html",
-            "https://caps.ucsd.edu/resources/iflourish.html#Headspace"
-        ]
-
-        # Scrape web pages
-        web_documents = scrape_multiple_websites(urls)
+        # Try to load cached web data, otherwise scrape and save
+        web_documents = load_scraped_data()
+        if not web_documents:  # If cache is empty, scrape
+            urls = [
+                "https://caps.ucsd.edu/services/groups.html#Psychotherapy-and-Support-Group",
+                "https://caps.ucsd.edu/services/letstalk.html",
+                "https://caps.ucsd.edu/resources/iflourish.html#Headspace"
+            ]
+            web_documents = scrape_multiple_websites(urls)
+            save_scraped_data(web_documents)  # Save new data to cache
 
         # Combine PDFs and Web Data
         all_documents = pages + web_documents
 
+        # Apply Semantic Chunking**
+        chunk_size = 500  # Customize based on document size
+        chunk_overlap = 100  # Ensure overlap to preserve context
+        splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+
+        chunked_docs = []
+        for doc in all_documents:
+            chunks = splitter.split_text(doc.page_content)  # Break into semantic chunks
+            chunked_docs.extend([Document(page_content=chunk) for chunk in chunks])  # Wrap in Document objects
+
         # Convert documents to embeddings using embed_documents method
-        document_texts = [doc.page_content for doc in all_documents]
-        embeddings_list = embeddings.embed_documents(document_texts)
+        embeddings_list = embeddings.embed_documents([doc.page_content for doc in chunked_docs])
 
         # Convert embeddings to a numpy array (for FAISS)
         embeddings_array = np.array(embeddings_list).astype('float32')
 
         # Create FAISS index
-        d = embeddings_array.shape[1]  # dimension of the embeddings
-        index = faiss.IndexFlatL2(d)  # L2 distance index (you can choose another type of FAISS index)
+        d = embeddings_array.shape[1]  # Embedding dimension
+        index = faiss.IndexFlatIP(d)   # Inner Product (Cosine Similarity)
+        faiss.normalize_L2(embeddings_array)  # Normalize for Cosine Similarity
+        index.add(embeddings_array)  # Add embeddings
 
-        # Add embeddings to the FAISS index
-        index.add(embeddings_array)
-
-        k = 5
-        query_embedding = embeddings.embed_query(query)  # Get query embedding
+        k = min(5, embeddings_array.shape[0])  # Ensure k is within range
+        query_embedding = embeddings.embed_query(query)
         query_embedding = np.array([query_embedding]).astype('float32')
         distances, indices = index.search(query_embedding, k)  # Perform search
-        return [all_documents[i] for i in indices[0]]
+
+        retrieved_docs = [chunked_docs[i] for i in indices[0] if i < len(chunked_docs)]
+        return retrieved_docs
 
 @action(is_system_action=True)
 async def rag(query: str, contexts: list) -> str:
@@ -274,6 +325,9 @@ async def rag(query: str, contexts: list) -> str:
     Direct students to events related to their problem if possible and provide the description of the resources provided. 
     Please also include information on how to sign up for any events or access any resources mentioned.
     Please also ask if the student needs more information about the resources provided.
+    Try break it down into multiple paragraphs.
+
+    Try not to recommend resources that have already been recommended in the history chat.
 
     Keep it simple.
 
