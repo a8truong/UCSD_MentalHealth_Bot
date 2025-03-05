@@ -93,21 +93,21 @@ def summarize_chat_history(chat_history):
 
     return response.choices[0].message.content.strip()
 
-async def chat(prompt):
-    """
-    Generate a response asynchronously, adding context from chat history.
-    """
-    chat_history = get_chat_history()
+# async def chat(prompt):
+#     """
+#     Generate a response asynchronously, adding context from chat history.
+#     """
+#     chat_history = get_chat_history()
     
-    if len(chat_history) >= slide_window:  # Summarize history if needed
-        summarized_history = " ".join([msg["content"] for msg in chat_history])
-        prompt = f"Chat history summary: {summarized_history}. New question: {prompt}"
+#     if len(chat_history) >= slide_window:  # Summarize history if needed
+#         summarized_history = " ".join([msg["content"] for msg in chat_history])
+#         prompt = f"Chat history summary: {summarized_history}. New question: {prompt}"
     
-    prompt = generate_contextual_prompt(prompt, chat_history)  # Add keywords from history
-    response = await rails.generate_async(prompt=prompt)
-    print(f"Final Prompt: {prompt}")
+#     prompt = generate_contextual_prompt(prompt, chat_history)  # Add keywords from history
+#     response = await rails.generate_async(prompt=prompt)
+#     print(f"Final Prompt: {prompt}")
 
-    return response
+#     return response
 
 def main():
     st.title("UCSD Mental Health Bot")
@@ -129,25 +129,25 @@ def main():
         with st.chat_message("user"):
             st.write(prompt)
 
-        # async def chat():
-        #     """
-        #     Generate response asynchronously, summarizing chat history if needed.
-        #     """
-        #     chat_history = get_chat_history()
+        async def chat():
+            """
+            Generate response asynchronously, summarizing chat history if needed.
+            """
+            chat_history = get_chat_history()
 
-        #     if len(chat_history) >= slide_window:  # Summarize history if it exceeds threshold
-        #         print(chat_history)
-        #         summarized_history = summarize_chat_history(chat_history)
-        #         p = "Chat history: " + summarized_history + " New prompt from user: " + prompt
-        #         response = await rails.generate_async(prompt=p)
-        #         print(p)
-        #     else:
-        #         response = await rails.generate_async(prompt=prompt)
-        #         print(">Prompt: " + prompt)
+            if len(chat_history) >= slide_window:  # Summarize history if it exceeds threshold
+                print(chat_history)
+                summarized_history = summarize_chat_history(chat_history)
+                p = "Chat history summary: " + summarized_history + " New question: " + prompt
+                response = await rails.generate_async(prompt=p)
+                print(p)
+            else:
+                response = await rails.generate_async(prompt=prompt)
+                print(">Prompt: " + prompt)
 
-        #     return response
+            return response
 
-        response = asyncio.run(chat(prompt))
+        response = asyncio.run(chat())
 
         match = re.search(r'Bot message:\s*"([^"]+)"', response)
         if match:
