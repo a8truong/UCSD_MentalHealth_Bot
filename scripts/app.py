@@ -32,8 +32,9 @@ def get_chat_history():
     """
     if len(st.session_state.messages) <= 2:
         return []  # Not enough messages to summarize
-
-    return st.session_state.messages[:-1][-slide_window:]
+      
+    # Exclude the last two messages (latest user query and assistant response)
+    return st.session_state.messages[-5:-1]
 
 def summarize_chat_history(chat_history):
     """
@@ -51,6 +52,8 @@ def summarize_chat_history(chat_history):
             keeping the key details relevant to the conversation. If mental health concerns 
             such as stress, anxiety, or emotional distress are mentioned, ensure the summary 
             includes references to helpful resources like mental health workshops, events, or counseling services.
+
+            If the last sentence is a question, keep the question in the summary.
             
             <chat_history>
             {chat_history}
@@ -92,8 +95,9 @@ def main():
             if len(chat_history) >= slide_window:  # Summarize history if it exceeds threshold
                 print(chat_history)
                 summarized_history = summarize_chat_history(chat_history)
-                response = await rails.generate_async(prompt=summarized_history + " " + prompt)
-                print(summarized_history)
+                p = "Chat history: " + summarized_history + " New prompt from user: " + prompt
+                response = await rails.generate_async(prompt=p)
+                print(p)
             else:
                 response = await rails.generate_async(prompt=prompt)
                 print(">Prompt: " + prompt)
