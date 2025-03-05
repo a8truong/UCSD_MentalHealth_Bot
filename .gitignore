@@ -10,3 +10,4 @@ mental-health/
 __pycache__
 .DS_Store
 new-env/
+faiss_index.bin
