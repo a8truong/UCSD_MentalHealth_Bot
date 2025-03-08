@@ -15,7 +15,7 @@ client = OpenAI()
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-config = RailsConfig.from_path("scripts/config")
+config = RailsConfig.from_path("config")
 rails = LLMRails(config)
 
 nlp = spacy.load("en_core_web_sm")
