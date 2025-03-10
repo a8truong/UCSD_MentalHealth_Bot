@@ -30,3 +30,15 @@ This will open up the chatbot application locally and allow you to talk with it.
 
 
 When talking to the chatbot, it is expected to direct users to UCSD mental health resources, as well as provide emotional validation and support. Resources shown will be real and accurate (as of Winter 2025), and the chatbot will not be able to assists in non-mental health topics (ex. cooking, coding, doing homework, etc.). If the chatbot receives a message flagged as a crisis, users will be directed to emergency resources. 
+
+# Model Comparison
+
+To compare our chatbot to our baseline, you can run the following:
+```
+# assuming you are still pathed to scripts
+cd ..
+cd test
+python evaluate.py
+```
+
+This will write the results of both our model with guardrails and our baseline model of just RAG to output_responses.csv.
