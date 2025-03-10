@@ -73,7 +73,7 @@ def load_multiple_pdfs(pdf_directory="data", chunk_size=500, chunk_overlap=100):
 
     return all_pages
 
-PDF_CACHE_FILE = "scripts/config/kb/pdf_data.json"
+PDF_CACHE_FILE = "config/kb/pdf_data.json"
 
 def save_pdf_data(documents):
     """Save processed PDF data to a JSON file."""
@@ -115,7 +115,7 @@ def scrape_multiple_websites(urls):
     # Filter out any None results (failed fetches)
     return [result for result in results if result is not None]
 
-CACHE_FILE = "scripts/config/kb/scraped_data.json"
+CACHE_FILE = "config/kb/scraped_data.json"
 
 def save_scraped_data(documents):
     """Save scraped documents to a JSON file."""
